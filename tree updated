@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define the structure for a binary tree node
+struct node {
+    char* data;
+    struct node* left;
+    struct node* right;
+};
+
+// Function to create a new node with the given data
+struct node* createNode(const char* data) {
+    struct node* newNode = (struct node*)malloc(sizeof(struct node));
+    newNode->data = strdup(data); // Dynamically allocate memory for string data
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+// Function to perform inorder tree traversal (left, root, right)
+void inorderTraversal(struct node* root) {
+    if (root != NULL) {
+        inorderTraversal(root->left);
+        printf("%s ", root->data);
+        inorderTraversal(root->right);
+    }
+}
+
+// Function to perform preorder tree traversal (root, left, right)
+void preorderTraversal(struct node* root) {
+    if (root != NULL) {
+        printf("%s ", root->data);
+        preorderTraversal(root->left);
+        preorderTraversal(root->right);
+    }
+}
+
+// Function to perform postorder tree traversal (left, right, root)
+void postorderTraversal(struct node* root) {
+    if (root != NULL) {
+        postorderTraversal(root->left);
+        postorderTraversal(root->right);
+        printf("%s ", root->data);
+    }
+}
+
+int main() {
+    // Input custom binary tree
+    char rootData[100], leftData[100], rightData[100];
+    printf("Enter data for root node: ");
+    scanf("%s", rootData);
+
+    struct node* root = createNode(rootData);
+
+    printf("Enter data for left child of root (Enter -1 if no left child): ");
+    scanf("%s", leftData);
+    if (strcmp(leftData, "-1") != 0) {
+        root->left = createNode(leftData);
+
+        printf("Enter data for left child of left child (Enter -1 if no left child): ");
+        scanf("%s", leftData);
+        if (strcmp(leftData, "-1") != 0) {
+            root->left->left = createNode(leftData);
+        }
+
+        printf("Enter data for right child of left child (Enter -1 if no right child): ");
+        scanf("%s", rightData);
+        if (strcmp(rightData, "-1") != 0) {
+            root->left->right = createNode(rightData);
+        }
+    }
+
+    printf("Enter data for right child of root (Enter -1 if no right child): ");
+    scanf("%s", rightData);
+    if (strcmp(rightData, "-1") != 0) {
+        root->right = createNode(rightData);
+
+        printf("Enter data for left child of right child (Enter -1 if no left child): ");
+        scanf("%s", leftData);
+        if (strcmp(leftData, "-1") != 0) {
+            root->right->left = createNode(leftData);
+        }
+
+        printf("Enter data for right child of right child (Enter -1 if no right child): ");
+        scanf("%s", rightData);
+        if (strcmp(rightData, "-1") != 0) {
+            root->right->right = createNode(rightData);
+        }
+    }
+
+    printf("\nInorder Traversal: ");
+    inorderTraversal(root);
+
+    printf("\nPreorder Traversal: ");
+    preorderTraversal(root);
+
+    printf("\nPostorder Traversal: ");
+    postorderTraversal(root);
+
+    return 0;
+}
