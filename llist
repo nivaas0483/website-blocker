@@ -1,0 +1,18 @@
+#ifndef MAIN_H
+#define MAIN_H
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function declarations
+struct Node* createNode(int data);
+void insertNode(struct Node** head_ref, int data);
+void deleteNodeAtPosition(struct Node** head_ref, int position);
+void deleteAllOccurrences(struct Node** head_ref, int key);
+void printList(struct Node* head);
+void freeList(struct Node** head_ref);
+
+#endif
