@@ -1,0 +1,181 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a new node at the correct position in the linked list
+void insertInSortedOrder(struct Node** head_ref, int data) {
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    while (current != NULL && current->data < data) {
+        prev = current;
+        current = current->next;
+    }
+    if (prev == NULL) {
+        newNode->next = *head_ref;
+        *head_ref = newNode;
+    } else {
+        prev->next = newNode;
+        newNode->next = current;
+    }
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+// Function to delete a specific node by value or position
+void deleteNode(struct Node** head_ref, int value) {
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    int found = 0, position = 0;
+    
+    while (current != NULL) {
+        if (current->data == value) {
+            found = 1;
+            printf("Node with value %d found at position %d\n", value, position);
+        }
+        prev = current;
+        current = current->next;
+        position++;
+    }
+    
+    if (!found) {
+        printf("Node with value %d not found in the linked list.\n", value);
+        return;
+    }
+    
+    printf("Options:\n");
+    printf("1. Delete all occurrences of %d\n", value);
+    printf("2. Enter the position of %d to delete: ", value);
+    int option;
+    scanf("%d", &option);
+    
+    if (option == 1) {
+        struct Node* temp = *head_ref;
+        struct Node* next_node;
+        while (temp != NULL) {
+            if (temp->data == value) {
+                if (prev == NULL) {
+                    *head_ref = temp->next;
+                    free(temp);
+                    temp = *head_ref;
+                } else {
+                    prev->next = temp->next;
+                    next_node = temp->next;
+                    free(temp);
+                    temp = next_node;
+                }
+            } else {
+                prev = temp;
+                temp = temp->next;
+            }
+        }
+        printf("All occurrences of node with value %d deleted successfully.\n", value);
+    } else if (option == 2) {
+        printf("Enter the position of the node to delete: ");
+        scanf("%d", &position);
+        
+        if (position < 0) {
+            printf("Invalid position.\n");
+            return;
+        }
+        
+        struct Node* temp = *head_ref;
+        struct Node* next_node;
+        int i = 0;
+        while (temp != NULL && i < position) {
+            prev = temp;
+            temp = temp->next;
+            i++;
+        }
+        
+        if (temp == NULL && i < position) {
+            printf("Invalid position.\n");
+            return;
+        }
+        
+        if (prev == NULL) {
+            *head_ref = temp->next;
+        } else {
+            prev->next = temp->next;
+        }
+        free(temp);
+        printf("Node at position %d with value %d deleted successfully.\n", position, value);
+    } else {
+        printf("Invalid option.\n");
+    }
+}
+
+// Function to add nodes to the sorted linked list
+void addNodes(struct Node** head_ref) {
+    int data;
+    printf("Enter data to add nodes (enter -1 to stop): ");
+    while (1) {
+        scanf("%d", &data);
+        if (data == -1) break;
+        insertInSortedOrder(head_ref, data);
+    }
+    printf("Nodes added successfully.\n");
+}
+
+int main() {
+    struct Node* head = NULL;
+    int choice, data, value;
+
+    printf("Sorted Linked List Operations:\n");
+    printf("1. Add nodes\n");
+    printf("2. Delete a node\n");
+    printf("3. Print the linked list\n");
+    printf("4. Exit\n");
+
+    while (1) {
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                addNodes(&head);
+                break;
+            case 2:
+                printf("Enter the value of the node to delete: ");
+                scanf("%d", &value);
+                deleteNode(&head, value);
+                break;
+            case 3:
+                printf("Linked list: ");
+                printList(head);
+                break;
+            case 4:
+                printf("Exiting program.\n");
+                exit(EXIT_SUCCESS);
+            default:
+                printf("Invalid choice. Please enter a valid option.\n");
+        }
+    }
+
+    return 0;
+}
