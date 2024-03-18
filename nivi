@@ -1,0 +1,224 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a new node at the correct position in the sorted linked list
+void insertInSortedOrder(struct Node** head_ref, int data) {
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    while (current != NULL && current->data < data) {
+        prev = current;
+        current = current->next;
+    }
+    if (prev == NULL) {
+        newNode->next = *head_ref;
+        *head_ref = newNode;
+    } else {
+        prev->next = newNode;
+        newNode->next = current;
+    }
+}
+
+// Function to insert a new node at the end of the linked list
+void insertAtEnd(struct Node** head_ref, int data) {
+    struct Node* newNode = createNode(data);
+    if (*head_ref == NULL) {
+        *head_ref = newNode;
+        return;
+    }
+    struct Node* current = *head_ref;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = newNode;
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+// Function to free the memory allocated for the linked list
+void freeList(struct Node** head_ref) {
+    struct Node* current = *head_ref;
+    struct Node* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    *head_ref = NULL;
+}
+
+// Function to delete all occurrences of a node with a given value
+void deleteAllOccurrences(struct Node** head_ref, int key) {
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    int deleted = 0;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            deleted = 1;
+            if (prev == NULL) {
+                *head_ref = current->next;
+                free(current);
+                current = *head_ref;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    if (!deleted) {
+        printf("Node with value %d not found in the linked list.\n", key);
+    } else {
+        printf("All occurrences of node with value %d deleted successfully.\n", key);
+    }
+}
+
+// Function to insert a new node at a specific position in the linked list
+void insertAtPosition(struct Node** head_ref, int data, int position) {
+    if (position < 0) {
+        printf("Invalid position.\n");
+        return;
+    }
+    if (position == 0) {
+        insertAtEnd(head_ref, data);
+        return;
+    }
+
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head_ref;
+    int i;
+    for (i = 0; current != NULL && i < position - 1; i++) {
+        current = current->next;
+    }
+    if (current == NULL) {
+        printf("Invalid position.\n");
+        return;
+    }
+    newNode->next = current->next;
+    current->next = newNode;
+}
+
+int main() {
+    struct Node* head = NULL;
+    int choice, data, position, value;
+
+    while (1) {
+        printf("\nChoose data type:\n");
+        printf("1. Sorted data\n");
+        printf("2. Unsorted data\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter sorted data (enter -1 to stop): ");
+                while (1) {
+                    scanf("%d", &data);
+                    if (data == -1) break;
+                    insertInSortedOrder(&head, data);
+                }
+                break;
+            case 2:
+                printf("Enter unsorted data (enter -1 to stop): ");
+                while (1) {
+                    scanf("%d", &data);
+                    if (data == -1) break;
+                    insertAtEnd(&head, data);
+                }
+                break;
+            case 3:
+                printf("Exiting program.\n");
+                freeList(&head);
+                exit(EXIT_SUCCESS);
+            default:
+                printf("Invalid choice. Please enter 1, 2, or 3.\n");
+                break;
+        }
+
+        while (1) {
+            printf("\nLinked List Operations:\n");
+            printf("1. Delete a node\n");
+            printf("2. Add node\n");
+            printf("3. Insert a node\n");
+            printf("4. Print the linked list\n");
+            printf("5. Switch data type\n");
+            printf("6. Exit\n");
+            printf("Enter your choice: ");
+            scanf("%d", &choice);
+
+            switch (choice) {
+                case 1:
+                    printf("Enter the value of the node to delete: ");
+                    scanf("%d", &value);
+                    deleteAllOccurrences(&head, value);
+                    break;
+                case 2:
+                    printf("Enter data to add: ");
+                    scanf("%d", &data);
+                    if (choice == 1)
+                        insertInSortedOrder(&head, data);
+                    else
+                        insertAtEnd(&head, data);
+                    break;
+                case 3:
+                    printf("Enter data to insert: ");
+                    scanf("%d", &data);
+                    printf("Enter position to insert (enter -1 to insert at end): ");
+                    scanf("%d", &position);
+                    if (position == -1)
+                        insertAtEnd(&head, data);
+                    else
+                        insertAtPosition(&head, data, position);
+                    break;
+                case 4:
+                    printf("Linked list: ");
+                    printList(head);
+                    break;
+                case 5:
+                    printf("Switching data type...\n");
+                    freeList(&head);
+                    break;
+                case 6:
+                    printf("Exiting program.\n");
+                    freeList(&head);
+                    exit(EXIT_SUCCESS);
+                default:
+                    printf("Invalid choice. Please enter a valid option.\n");
+            }
+        }
+    }
+
+    return 0;
+}
