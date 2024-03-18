@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "main.h"
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a new node with given value
+void insertNode(struct Node** head_ref, int value) {
+    struct Node* newNode = createNode(value);
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    
+    // Traverse the list to find the correct position to insert the new node
+    while (current != NULL && current->data < value) {
+        prev = current;
+        current = current->next;
+    }
+
+    // Insert the new node at the correct position
+    if (prev == NULL) {
+        newNode->next = *head_ref;
+        *head_ref = newNode;
+    } else {
+        prev->next = newNode;
+        newNode->next = current;
+    }
+}
+
+// Function to delete all occurrences of a node with a given value
+void deleteAllOccurrences(struct Node** head_ref, int key) {
+    struct Node* current = *head_ref;
+    struct Node* prev = NULL;
+    int deleted = 0;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            deleted = 1;
+            if (prev == NULL) {
+                *head_ref = current->next;
+                free(current);
+                current = *head_ref;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+
+    if (!deleted) {
+        printf("Node with value %d not found in the linked list.\n", key);
+    } else {
+        printf("All occurrences of node with value %d deleted successfully.\n", key);
+    }
+}
+
+// Function to delete a node at a particular position
+void deleteNodeAtPosition(struct Node** head_ref, int position) {
+    if (*head_ref == NULL) {
+        printf("Linked list is empty.\n");
+        return;
+    }
+
+    struct Node* temp = *head_ref;
+    if (position == 0) {
+        *head_ref = temp->next;
+        free(temp);
+        printf("Node at position %d deleted successfully.\n", position);
+        return;
+    }
+
+    int i;
+    for (i = 0; temp != NULL && i < position - 1; i++) {
+        temp = temp->next;
+    }
+
+    if (temp == NULL || temp->next == NULL) {
+        printf("Invalid position.\n");
+        return;
+    }
+
+    struct Node* next_node = temp->next->next;
+    free(temp->next);
+    temp->next = next_node;
+    printf("Node at position %d deleted successfully.\n", position);
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+// Function to free the memory allocated for the linked list
+void freeList(struct Node** head_ref) {
+    struct Node* current = *head_ref;
+    struct Node* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    *head_ref = NULL;
+}
