@@ -1,0 +1,151 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to insert a new node at the beginning of the linked list
+void insertAtBeginning(struct Node** head_ref, int data) {
+    struct Node* newNode = createNode(data);
+    newNode->next = *head_ref;
+    *head_ref = newNode;
+}
+
+// Function to insert a new node at a particular position in the linked list
+void insertAtPosition(struct Node** head_ref, int data, int position) {
+    if (position < 0) {
+        printf("Invalid position.\n");
+        return;
+    }
+    if (position == 0) {
+        insertAtBeginning(head_ref, data);
+        return;
+    }
+
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head_ref;
+    int i;
+    for (i = 0; current != NULL && i < position - 1; i++) {
+        current = current->next;
+    }
+    if (current == NULL) {
+        printf("Invalid position.\n");
+        return;
+    }
+    newNode->next = current->next;
+    current->next = newNode;
+}
+
+// Function to insert a new node at the end of the linked list
+void insertAtEnd(struct Node** head_ref, int data) {
+    struct Node* newNode = createNode(data);
+    if (*head_ref == NULL) {
+        *head_ref = newNode;
+        return;
+    }
+    struct Node* current = *head_ref;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = newNode;
+}
+
+// Function to sort the linked list in ascending order
+void sortList(struct Node** head_ref) {
+    struct Node *current, *index;
+    int temp;
+    if (*head_ref == NULL) {
+        return;
+    } else {
+        for (current = *head_ref; current != NULL; current = current->next) {
+            for (index = current->next; index != NULL; index = index->next) {
+                if (current->data > index->data) {
+                    temp = current->data;
+                    current->data = index->data;
+                    index->data = temp;
+                }
+            }
+        }
+    }
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+// Function to free the memory allocated for the linked list
+void freeList(struct Node** head_ref) {
+    struct Node* current = *head_ref;
+    struct Node* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    *head_ref = NULL;
+}
+
+int main() {
+    struct Node* head = NULL;
+    int choice, data, position;
+
+    printf("Choose data type:\n");
+    printf("1. Unsorted data\n");
+    printf("2. Sorted data\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+
+    if (choice == 1) {
+        printf("Enter data to insert (enter -1 to stop): ");
+        while (1) {
+            scanf("%d", &data);
+            if (data == -1) break;
+            printf("Enter position to insert (enter -1 to insert at end): ");
+            scanf("%d", &position);
+            if (position == -1) {
+                insertAtEnd(&head, data);
+            } else {
+                insertAtPosition(&head, data, position);
+            }
+        }
+    } else if (choice == 2) {
+        printf("Enter sorted data to insert (enter -1 to stop): ");
+        while (1) {
+            scanf("%d", &data);
+            if (data == -1) break;
+            insertAtEnd(&head, data);
+        }
+        sortList(&head); // Sort the list after insertion
+    } else {
+        printf("Invalid choice.\n");
+        return 1;
+    }
+
+    printf("Linked list: ");
+    printList(head);
+
+    freeList(&head);
+
+    return 0;
+}
