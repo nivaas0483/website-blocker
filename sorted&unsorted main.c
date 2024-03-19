@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "main.h"
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
 
 // Function to create a new node
 struct Node* createNode(int data) {
@@ -131,7 +136,7 @@ void freeList(struct Node** head_ref) {
 int main() {
     struct Node* sortedHead = NULL;
     struct Node* unsortedHead = NULL;
-    int choice, data, key, position;
+    int choice, data, key, position, numNodes;
 
     while (1) {
         printf("\nLinked List Operations:\n");
@@ -143,110 +148,26 @@ int main() {
 
         switch (choice) {
             case 1:
-                while (1) {
-                    printf("\nSorted Data Mode Operations:\n");
-                    printf("1. Add a node\n");
-                    printf("2. Delete all occurrences of a node with a given value\n");
-                    printf("3. Delete a node at a particular position\n");
-                    printf("4. Print the linked list\n");
-                    printf("5. Back to Main Menu\n");
-                    printf("Enter your choice: ");
-                    scanf("%d", &choice);
-
-                    switch (choice) {
-                        case 1:
-                            printf("Enter data to insert (enter -1 to stop): ");
-                            while (1) {
-                                scanf("%d", &data);
-                                if (data == -1) break;
-                                insertNodeSorted(&sortedHead, data);
-                            }
-                            break;
-                        case 2:
-                            printf("Enter the value of the node to delete: ");
-                            scanf("%d", &key);
-                            deleteAllOccurrences(&sortedHead, key);
-                            break;
-                        case 3:
-                            printf("Enter the position of the node to delete: ");
-                            scanf("%d", &position);
-                            deleteNodeAtPosition(&sortedHead, position);
-                            break;
-                        case 4:
-                            printf("Linked list: ");
-                            printList(sortedHead);
-                            break;
-                        case 5:
-                            printf("Returning to Main Menu.\n");
-                            break;
-                        default:
-                            printf("Invalid choice. Please enter a valid option.\n");
-                    }
-                    if (choice == 5) break;
+                printf("Enter the number of nodes: ");
+                scanf("%d", &numNodes);
+                printf("Enter %d nodes: ", numNodes);
+                for (int i = 0; i < numNodes; i++) {
+                    scanf("%d", &data);
+                    insertNodeSorted(&sortedHead, data);
                 }
+                printf("The linked list: ");
+                printList(sortedHead);
                 break;
             case 2:
-                while (1) {
-                    printf("\nUnsorted Data Mode Operations:\n");
-                    printf("1. Add a node\n");
-                    printf("2. Insert node at beginning\n");
-                    printf("3. Insert node at particular position\n");
-                    printf("4. Insert node at end\n");
-                    printf("5. Delete all occurrences of a node with a given value\n");
-                    printf("6. Delete a node at a particular position\n");
-                    printf("7. Print the linked list\n");
-                    printf("8. Back to Main Menu\n");
-                    printf("Enter your choice: ");
-                    scanf("%d", &choice);
-
-                    switch (choice) {
-                        case 1:
-                            printf("Enter data to insert (enter -1 to stop): ");
-                            while (1) {
-                                scanf("%d", &data);
-                                if (data == -1) break;
-                                insertNodeUnsorted(&unsortedHead, data);
-                            }
-                            break;
-                        case 2:
-                            printf("Enter data to insert at beginning: ");
-                            scanf("%d", &data);
-                            insertNodeUnsorted(&unsortedHead, data);
-                            break;
-                        case 3:
-                            printf("Enter data to insert: ");
-                            scanf("%d", &data);
-                            printf("Enter the position to insert: ");
-                            scanf("%d", &position);
-                            insertNodeUnsorted(&unsortedHead, data);
-                            break;
-                        case 4:
-                            printf("Enter data to insert at end: ");
-                            scanf("%d", &data);
-                            insertNodeUnsorted(&unsortedHead, data);
-                            break;
-                        case 5:
-                            printf("Enter the value of the node to delete: ");
-                            scanf("%d", &key);
-                            deleteAllOccurrences(&unsortedHead, key);
-                            break;
-                        case 6:
-                            printf("Enter the position of the node to delete: ");
-                            scanf("%d", &position);
-                            deleteNodeAtPosition(&unsortedHead, position);
-                            break;
-                        case 7:
-                            printf("Linked list: ");
-                            printList(unsortedHead);
-                            break;
-                        case 8:
-                            printf("Returning to Main Menu.\n");
-                            break;
-                        default:
-                            printf("Invalid choice. Please enter a valid option.\n");
-                    }
-                    if (choice == 8) break;
+                printf("Enter the number of nodes: ");
+                scanf("%d", &numNodes);
+                printf("Enter %d nodes: ", numNodes);
+                for (int i = 0; i < numNodes; i++) {
+                    scanf("%d", &data);
+                    insertNodeUnsorted(&unsortedHead, data);
                 }
+                printf("The linked list: ");
+                printList(unsortedHead);
                 break;
             case 3:
                 printf("Exiting program.\n");
