@@ -1,0 +1,31 @@
+#ifndef MAIN_H
+#define MAIN_H
+
+// Define a structure for a node in the linked list
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data);
+
+// Function to insert a new node with given value for sorted data
+void insertNodeSorted(struct Node** head_ref, int value);
+
+// Function to insert a new node with given value for unsorted data
+void insertNodeUnsorted(struct Node** head_ref, int value);
+
+// Function to delete all occurrences of a node with a given value
+void deleteAllOccurrences(struct Node** head_ref, int key);
+
+// Function to delete a node at a particular position
+void deleteNodeAtPosition(struct Node** head_ref, int position);
+
+// Function to print the linked list
+void printList(struct Node* head);
+
+// Function to free the memory allocated for the linked list
+void freeList(struct Node** head_ref);
+
+#endif /* MAIN_H */
