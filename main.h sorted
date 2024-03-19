@@ -1,7 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-// Define a structure for a node in the linked list
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node structure
 struct Node {
     int data;
     struct Node* next;
@@ -9,10 +12,14 @@ struct Node {
 
 // Function prototypes
 struct Node* createNode(int data);
-void insertNode(struct Node** head_ref, int data);
-void deleteNodeAtPosition(struct Node** head_ref, int position);
-void deleteAllOccurrences(struct Node** head_ref, int key);
 void printList(struct Node* head);
-void freeList(struct Node** head_ref);
+void insertSorted(struct Node** head, int data);
+void deleteOccurrences(struct Node** head, int key);
+void deleteAtPosition(struct Node** head, int position);
+void insertAtBeginning(struct Node** head, int data);
+void insertAtPosition(struct Node** head, int position, int data);
+void insertAtEnd(struct Node** head, int data);
+void deleteOccurrencesUnsorted(struct Node** head, int key);
+void deleteAtPositionUnsorted(struct Node** head, int position);
 
 #endif /* MAIN_H */
