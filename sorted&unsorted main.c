@@ -148,36 +148,43 @@ int main() {
 
         switch (choice) {
             case 1:
-                printf("Enter the number of nodes: ");
-                scanf("%d", &numNodes);
-                printf("Enter %d nodes: ", numNodes);
-                for (int i = 0; i < numNodes; i++) {
-                    scanf("%d", &data);
-                    insertNodeSorted(&sortedHead, data);
-                }
-                printf("The linked list: ");
-                printList(sortedHead);
-                break;
-            case 2:
-                printf("Enter the number of nodes: ");
-                scanf("%d", &numNodes);
-                printf("Enter %d nodes: ", numNodes);
-                for (int i = 0; i < numNodes; i++) {
-                    scanf("%d", &data);
-                    insertNodeUnsorted(&unsortedHead, data);
-                }
-                printf("The linked list: ");
-                printList(unsortedHead);
-                break;
-            case 3:
-                printf("Exiting program.\n");
-                freeList(&sortedHead);
-                freeList(&unsortedHead);
-                exit(EXIT_SUCCESS);
-            default:
-                printf("Invalid choice. Please enter a valid option.\n");
-        }
-    }
+                printf("Sorted Data Mode Operations:\n");
+                printf("1. Add a node\n");
+                printf("2. Delete all occurrences of a node with a given value\n");
+                printf("3. Delete a node at a particular position\n");
+                printf("4. Print the linked list\n");
+                printf("5. Back to Main Menu\n);
+                            printf("Enter your choice: ");
+                scanf("%d", &choice);
 
-    return 0;
-}
+                switch (choice) {
+                    case 1:
+                        printf("Enter the number of nodes to add: ");
+                        scanf("%d", &numNodes);
+                        printf("Enter %d nodes: ", numNodes);
+                        for (int i = 0; i < numNodes; ++i) {
+                            scanf("%d", &data);
+                            insertNodeSorted(&sortedHead, data);
+                        }
+                        break;
+                    case 2:
+                        printf("Enter the value of the node to delete: ");
+                        scanf("%d", &key);
+                        deleteAllOccurrences(&sortedHead, key);
+                        break;
+                    case 3:
+                        printf("Enter the position of the node to delete: ");
+                        scanf("%d", &position);
+                        deleteNodeAtPosition(&sortedHead, position);
+                        break;
+                    case 4:
+                        printf("Linked list: ");
+                        printList(sortedHead);
+                        break;
+                    case 5:
+                        printf("Returning to Main Menu.\n");
+                        break;
+                    default:
+                        printf("Invalid choice. Please enter a valid option.\n");
+                }
+                break;
