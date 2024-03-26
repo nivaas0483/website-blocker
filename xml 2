@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <string.h>
+#include <openssl/evp.h>
+
+// Define a simple data structure
+struct Person {
+    char name[50];
+    int age;
+};
+
+// Function to encrypt data using OpenSSL
+void encryptData(const unsigned char *plaintext, int plaintext_len, unsigned char *key,
+                 unsigned char *iv, unsigned char *ciphertext) {
+    EVP_CIPHER_CTX *ctx;
+
+    // Create and initialize the context
+    ctx = EVP_CIPHER_CTX_new();
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+    // Perform encryption
+    int len;
+    EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len);
+    int ciphertext_len = len;
+    EVP_EncryptFinal_ex(ctx, ciphertext + len, &len);
+    ciphertext_len += len;
+
+    // Clean up
+    EVP_CIPHER_CTX_free(ctx);
+}
+
+// Function to decrypt data using OpenSSL
+void decryptData(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+                 unsigned char *iv, unsigned char *plaintext) {
+    EVP_CIPHER_CTX *ctx;
+
+    // Create and initialize the context
+    ctx = EVP_CIPHER_CTX_new();
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv);
+
+    // Perform decryption
+    int len;
+    EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len);
+    int plaintext_len = len;
+    EVP_DecryptFinal_ex(ctx, plaintext + len, &len);
+    plaintext_len += len;
+
+    // Clean up
+    EVP_CIPHER_CTX_free(ctx);
+}
+
+// Function to serialize a Person struct to XML and write to a file
+void serializeToXML(struct Person person, const char *filename, unsigned char *key, unsigned char *iv) {
+    // Encrypt the data
+    unsigned char plaintext[sizeof(struct Person)];
+    memcpy(plaintext, &person, sizeof(struct Person));
+    unsigned char ciphertext[sizeof(struct Person)];
+    encryptData(plaintext, sizeof(struct Person), key, iv, ciphertext);
+
+    // Write the encrypted data to the file
+    FILE *file = fopen(filename, "wb");
+    if (file != NULL) {
+        fwrite(ciphertext, sizeof(ciphertext), 1, file);
+        fclose(file);
+    } else {
+        printf("Error: Unable to open file for writing.\n");
+    }
+}
+
+// Function to deserialize a Person struct from XML file
+struct Person deserializeFromXML(const char *filename, unsigned char *key, unsigned char *iv) {
+    // Read the encrypted data from the file
+    unsigned char ciphertext[sizeof(struct Person)];
+    FILE *file = fopen(filename, "rb");
+    if (file != NULL) {
+        fread(ciphertext, sizeof(ciphertext), 1, file);
+        fclose(file);
+    } else {
+        printf("Error: Unable to open file for reading.\n");
+        return (struct Person){"", 0}; // Return empty struct on error
+    }
+
+    // Decrypt the data
+    unsigned char plaintext[sizeof(struct Person)];
+    decryptData(ciphertext, sizeof(ciphertext), key, iv, plaintext);
+
+    // Reconstruct the Person struct
+    struct Person person;
+    memcpy(&person, plaintext, sizeof(struct Person));
+    return person;
+}
+
+int main() {
+    // Create a Person object
+    struct Person john = {"John Doe", 30};
+
+    // Encryption key and initialization vector (IV)
+    unsigned char key[EVP_MAX_KEY_LENGTH] = "01234567890123456789012345678901"; // 32-byte key
+    unsigned char iv[EVP_MAX_IV_LENGTH] = "0123456789012345"; // 16-byte IV
+
+    // Serialize the Person object to XML and write to a file
+    serializeToXML(john, "person.xml", key, iv);
+
+    // Deserialize the Person object from the XML file
+    struct Person retrievedPerson = deserializeFromXML("person.xml", key, iv);
+
+    // Use the retrieved Person object
+    printf("Retrieved Person:\n");
+    printf("Name: %s\n", retrievedPerson.name);
+    printf("Age: %d\n", retrievedPerson.age);
+
+    return 0;
+}
