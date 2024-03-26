@@ -48,8 +48,8 @@ void decryptData(unsigned char *ciphertext, int ciphertext_len, unsigned char *k
     EVP_CIPHER_CTX_free(ctx);
 }
 
-// Function to serialize a Person struct to XML and write to a file
-void serializeToXML(struct Person person, const char *filename, unsigned char *key, unsigned char *iv) {
+// Function to serialize a Person struct to binary file
+void serializeToFile(struct Person person, const char *filename, unsigned char *key, unsigned char *iv) {
     // Encrypt the data
     unsigned char plaintext[sizeof(struct Person)];
     memcpy(plaintext, &person, sizeof(struct Person));
@@ -66,8 +66,8 @@ void serializeToXML(struct Person person, const char *filename, unsigned char *k
     }
 }
 
-// Function to deserialize a Person struct from XML file
-struct Person deserializeFromXML(const char *filename, unsigned char *key, unsigned char *iv) {
+// Function to deserialize a Person struct from binary file
+struct Person deserializeFromFile(const char *filename, unsigned char *key, unsigned char *iv) {
     // Read the encrypted data from the file
     unsigned char ciphertext[sizeof(struct Person)];
     FILE *file = fopen(filename, "rb");
@@ -97,11 +97,11 @@ int main() {
     unsigned char key[EVP_MAX_KEY_LENGTH] = "01234567890123456789012345678901"; // 32-byte key
     unsigned char iv[EVP_MAX_IV_LENGTH] = "0123456789012345"; // 16-byte IV
 
-    // Serialize the Person object to XML and write to a file
-    serializeToXML(john, "person.xml", key, iv);
+    // Serialize the Person object to a binary file
+    serializeToFile(john, "person.dat", key, iv);
 
-    // Deserialize the Person object from the XML file
-    struct Person retrievedPerson = deserializeFromXML("person.xml", key, iv);
+    // Deserialize the Person object from the binary file
+    struct Person retrievedPerson = deserializeFromFile("person.dat", key, iv);
 
     // Use the retrieved Person object
     printf("Retrieved Person:\n");
