@@ -1,0 +1,55 @@
+#include <stdio.h>
+
+// Define a simple data structure
+struct Person {
+    char name[50];
+    int age;
+};
+
+// Function to serialize a Person struct to XML and write to a file
+void serializeToXML(struct Person person, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (file != NULL) {
+        fprintf(file, "<Person>\n");
+        fprintf(file, "  <Name>%s</Name>\n", person.name);
+        fprintf(file, "  <Age>%d</Age>\n", person.age);
+        fprintf(file, "</Person>\n");
+        fclose(file);
+    } else {
+        printf("Error: Unable to open file for writing.\n");
+    }
+}
+
+// Function to deserialize a Person struct from XML file
+struct Person deserializeFromXML(const char *filename) {
+    struct Person person;
+    FILE *file = fopen(filename, "r");
+    if (file != NULL) {
+        fscanf(file, "<Person>\n");
+        fscanf(file, "  <Name>%[^<]</Name>\n", person.name);
+        fscanf(file, "  <Age>%d</Age>\n", &person.age);
+        fscanf(file, "</Person>\n");
+        fclose(file);
+    } else {
+        printf("Error: Unable to open file for reading.\n");
+    }
+    return person;
+}
+
+int main() {
+    // Create a Person object
+    struct Person john = {"John Doe", 30};
+    
+    // Serialize the Person object to XML and write to a file
+    serializeToXML(john, "person.xml");
+    
+    // Deserialize the Person object from the XML file
+    struct Person retrievedPerson = deserializeFromXML("person.xml");
+    
+    // Use the retrieved Person object
+    printf("Retrieved Person:\n");
+    printf("Name: %s\n", retrievedPerson.name);
+    printf("Age: %d\n", retrievedPerson.age);
+    
+    return 0;
+}
