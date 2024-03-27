@@ -1,0 +1,570 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+
+#define KEY_SIZE 32
+#define IV_SIZE 16
+
+// Function declarations
+void encrypt(const unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
+void decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+struct Node* createNode(int data);
+void printList(struct Node* head);
+void serializeAndSaveSorted(struct Node* head, const char* filename, unsigned char* key, unsigned char* iv);
+struct Node* deserializeFromFileSorted(const char* filename, unsigned char* key, unsigned char* iv);
+void serializeAndSaveUnsorted(struct Node* head, const char* filename);
+struct Node* deserializeFromFileUnsorted(const char* filename);
+void insertSorted(struct Node** head, int data);
+void deleteOccurrences(struct Node** head, int key);
+void deleteAtPosition(struct Node** head, int position);
+void insertAtBeginning(struct Node** head, int data);
+void insertAtPosition(struct Node** head, int position, int data);
+void insertAtEnd(struct Node** head, int data);
+void deleteOccurrencesUnsorted(struct Node** head, int key);
+void deleteAtPositionUnsorted(struct Node** head, int position);
+
+// Node structure
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* temp = head;
+    while (temp != NULL) {
+        printf("%d ", temp->data);
+        temp = temp->next;
+    }
+    printf("\n");
+}
+
+// Function to encrypt data
+void encrypt(const unsigned char *plaintext, int plaintext_len, unsigned char *key,
+             unsigned char *iv, unsigned char *ciphertext) {
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+    int ciphertext_len;
+
+    /* Create and initialize the context */
+    if(!(ctx = EVP_CIPHER_CTX_new())) {
+        printf("Encryption context creation failed.\n");
+        return;
+    }
+
+    /* Initialize the encryption operation */
+    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        printf("Encryption initialization failed.\n");
+        return;
+    }
+
+    /* Provide the message to be encrypted, and obtain the encrypted output */
+    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len)) {
+        printf("Encryption update failed.\n");
+        return;
+    }
+    ciphertext_len = len;
+
+    /* Finalize the encryption */
+    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) {
+        printf("Encryption finalization failed.\n");
+        return;
+    }
+    ciphertext_len += len;
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+}
+
+// Function to decrypt data
+void decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+             unsigned char *iv, unsigned char *plaintext) {
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+    int plaintext_len;
+
+    /* Create and initialize the context */
+    if(!(ctx = EVP_CIPHER_CTX_new())) {
+        printf("Decryption context creation failed.\n");
+        return;
+    }
+
+    /* Initialize the decryption operation */
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        printf("Decryption initialization failed.\n");
+        return;
+    }
+
+    /* Provide the message to be decrypted, and obtain the decrypted output */
+    if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
+        printf("Decryption update failed.\n");
+        return;
+    }
+    plaintext_len = len;
+    /* Finalize the decryption */
+    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) {
+        printf("Decryption finalization failed.\n");
+        return;
+    }
+    plaintext_len += len;
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+}
+
+// Function to serialize the linked list and save it to a file (sorted mode)
+void serializeAndSaveSorted(struct Node* head, const char* filename, unsigned char* key, unsigned char* iv) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        printf("Error opening file for writing\n");
+        return;
+    }
+
+    struct Node* current = head;
+    while (current != NULL) {
+        unsigned char ciphertext[256];
+        encrypt((const unsigned char *)&current->data, sizeof(int), key, iv, ciphertext);
+        fwrite(ciphertext, sizeof(unsigned char), sizeof(int), file);
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+// Function to deserialize the linked list from a file (sorted mode)
+struct Node* deserializeFromFileSorted(const char* filename, unsigned char* key, unsigned char* iv) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Error opening file for reading\n");
+        return NULL;
+    }
+
+    struct Node* head = NULL;
+    struct Node* tail = NULL;
+    unsigned char ciphertext[256];
+    while (fread(ciphertext, sizeof(unsigned char), sizeof(int), file) != 0) {
+        int plaintext;
+        decrypt(ciphertext, sizeof(int), key, iv, (unsigned char *)&plaintext);
+        struct Node* newNode = createNode(plaintext);
+        if (head == NULL) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            tail = tail->next;
+        }
+    }
+
+    fclose(file);
+    return head;
+}
+
+// Function to serialize the linked list and save it to a file (unsorted mode)
+void serializeAndSaveUnsorted(struct Node* head, const char* filename) {
+    FILE* file = fopen(filename, "wb"); // Open the file in binary mode
+    if (file == NULL) {
+        printf("Error opening file for writing\n");
+        return;
+    }
+
+    struct Node* current = head;
+    while (current != NULL) {
+        fwrite(&current->data, sizeof(int), 1, file); // Write each node's data to the file
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+// Function to deserialize the linked list from a file (unsorted mode)
+struct Node* deserializeFromFileUnsorted(const char* filename) {
+    FILE* file = fopen(filename, "rb"); // Open the file in binary mode
+    if (file == NULL) {
+        printf("Error opening file for reading\n");
+        return NULL;
+    }
+
+    struct Node* head = NULL;
+    struct Node* tail = NULL;
+    int data;
+    while (fread(&data, sizeof(int), 1, file) == 1) { // Read each node's data from the file
+        struct Node* newNode = createNode(data);
+        if (head == NULL) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            tail = tail->next;
+        }
+    }
+
+    fclose(file);
+    return head;
+}
+
+// Function to add a node in sorted order
+void insertSorted(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL && current->data < data) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev == NULL) {
+        newNode->next = *head;
+        *head = newNode;
+    } else {
+        prev->next = newNode;
+        newNode->next = current;
+    }
+}
+
+// Function to delete all occurrences of a node with a given value
+void deleteOccurrences(struct Node** head, int key) {
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            if (prev == NULL) {
+                *head = current->next;
+                free(current);
+                current = *head;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+// Function to delete a node at a particular position
+void deleteAtPosition(struct Node** head, int position) {
+    if (*head == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    struct Node* temp = *head;
+    if (position == 0) {
+        *head = temp->next;
+        free(temp);
+        return;
+    }
+    for (int i = 0; temp != NULL && i < position - 1; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL || temp->next == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* nextNode = temp->next->next;
+    free(temp->next);
+    temp->next = nextNode;
+}
+
+// Function to add a node at the beginning of the list
+void insertAtBeginning(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    newNode->next = *head;
+    *head = newNode;
+}
+
+// Function to add a node at a particular position
+void insertAtPosition(struct Node** head, int position, int data) {
+    if (position == 0) {
+        insertAtBeginning(head, data);
+        return;
+    }
+    struct Node* temp = *head;
+    for (int i = 0; i < position - 1 && temp != NULL; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* newNode = createNode(data);
+    newNode->next = temp->next;
+    temp->next = newNode;
+}
+
+// Function to add a node at the end of the list
+void insertAtEnd(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    if (*head == NULL) {
+        *head = newNode;
+    } else {
+        struct Node* temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+}
+
+// Function to delete all occurrences of a node with a given value (unsorted mode)
+void deleteOccurrencesUnsorted(struct Node** head, int key) {
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            if (prev == NULL) {
+                *head = current->next;
+                free(current);
+                current = *head;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current =  prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+// Function to delete a node at a particular position (unsorted mode)
+void deleteAtPositionUnsorted(struct Node** head, int position) {
+    if (*head == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    struct Node* temp = *head;
+    if (position == 0) {
+        *head = temp->next;
+        free(temp);
+        return;
+    }
+    for (int i = 0; temp != NULL && i < position - 1; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL || temp->next == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* nextNode = temp->next->next;
+    free(temp->next);
+    temp->next = nextNode;
+}
+
+// Main function
+int main() {
+    struct Node* head = NULL;
+    int mode_choice, operation_choice;
+
+    do {
+        printf("Select the mode\n");
+        printf("1. Sorted Data Mode\n");
+        printf("2. Unsorted Data Mode\n");
+        printf("Enter your choice: ");
+        scanf("%d", &mode_choice);
+
+        switch (mode_choice) {
+            case 1:
+                do {
+                    printf("\nSorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Delete all occurrences of a node with a given value\n");
+                    printf("3. Delete a node at a particular position\n");
+                    printf("4. Print the linked list\n");
+                    printf("5. Serialize the linked list\n");
+                    printf("6. Deserialize the linked list\n");
+                    printf("7. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1: {
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertSorted(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        }
+                        case 2: {
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrences(&head, key);
+                            break;
+                        }
+                        case 3: {
+                            printf("Enter position of node to delete: ");
+                            int position;
+                            scanf("%d", &position);
+                            deleteAtPosition(&head, position);
+                            printList(head);
+                            break;
+                        }
+                        case 4: {
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        }
+                        case 5: {
+                            unsigned char key[KEY_SIZE] = "01234567890123456789012345678901"; // 256-bit key
+                            unsigned char iv[IV_SIZE] = "0123456789012345"; // 128-bit IV
+                            serializeAndSaveSorted(head, "sorted_data.dat", key, iv);
+                            printf("Linked list serialized and saved to 'sorted_data.dat'\n");
+                            break;
+                        }
+                        case 6: {
+                            unsigned char key[KEY_SIZE] = "01234567890123456789012345678901"; // 256-bit key
+                            unsigned char iv[IV_SIZE] = "0123456789012345"; // 128-bit IV
+                            head = deserializeFromFileSorted("sorted_data.dat", key, iv);
+                            printf("Linked list deserialized from 'sorted_data.dat'\n");
+                            break;
+                        }
+                        case 7: {
+                            printf("Exiting Sorted Data Mode...\n");
+                            break;
+                        }
+                        default: {
+                            printf("Invalid choice!\n");
+                            break;
+                        }
+                    }
+                } while (operation_choice != 7);
+                break;
+
+            case 2:
+                do {
+                    printf("\nUnsorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Insert node at beginning\n");
+                    printf("3. Insert node at particular position\n");
+                    printf("4. Insert node at end\n");
+                    printf("5. Delete all occurrences of a node with a given value\n");
+                    printf("6. Delete a node at a particular position\n");
+                    printf("7. Print the linked list\n");
+                    printf("8. Serialize the linked list\n");
+                    printf("9. Deserialize the linked list\n");
+                    printf("10. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1: {
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertAtEnd(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        }
+                        case 2: {
+                            printf("Enter data to insert at beginning: ");
+                            int dataBegin;
+                            scanf("%d", &dataBegin);
+                            insertAtBeginning(&head, dataBegin);
+                            printList(head);
+                            break;
+                        }
+                        case 3: {
+                            printf("Enter position to insert: ");
+                            int position, dataPos;
+                            scanf("%d", &position);
+                            printf("Enter data to insert: ");
+                            scanf("%d", &dataPos);
+                            insertAtPosition(&head, position, dataPos);
+                            printList(head);
+                            break;
+                        }
+                        case 4: {
+                            printf("Enter data to insert at end: ");
+                            int dataEnd;
+                            scanf("%d", &dataEnd);
+                            insertAtEnd(&head, dataEnd);
+                            printList(head);
+                            break;
+                        }
+                        case 5: {
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrencesUnsorted(&head, key);
+                            printList(head);
+                            break;
+                        }
+                        case 6: {
+                            printf("Enter position of node to delete: ");
+                            int positionDel;
+                            scanf("%d", &positionDel);
+                            deleteAtPositionUnsorted(&head, positionDel);
+                            printList(head);
+                            break;
+                        }
+                        case 7: {
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        }
+                        case 8: {
+                            serializeAndSaveUnsorted(head, "unsorted_data.dat");
+                            printf("Linked list serialized and saved to 'unsorted_data.dat'\n");
+                            break;
+                        }
+                        case 9: {
+                            head = deserializeFromFileUnsorted("unsorted_data.dat");
+                            printf("Linked list deserialized from 'unsorted_data.dat'\n");
+                            break;
+                        }
+                        case 10: {
+                            printf("Exiting Unsorted Data Mode...\n");
+                            break;
+                        }
+                        default: {
+                            printf("Invalid choice!\n");
+                            break;
+                        }
+                    }
+                } while (operation_choice != 10);
+                break;
+
+            default: {
+                printf("Invalid choice!\n");
+                break;
+            }
+        }
+    } while (mode_choice != 1 && mode_choice != 2);
+
+    return 0;
+}
