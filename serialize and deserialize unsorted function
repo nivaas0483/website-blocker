@@ -1,0 +1,42 @@
+// Function to serialize the linked list and save it to a file (unsorted mode)
+void serializeAndSaveUnsorted(struct Node* head, const char* filename) {
+    FILE* file = fopen(filename, "wb"); // Open the file in binary mode
+    if (file == NULL) {
+        printf("Error opening file for writing\n");
+        return;
+    }
+
+    struct Node* current = head;
+    while (current != NULL) {
+        fwrite(&current->data, sizeof(int), 1, file); // Write each node's data to the file
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+// Function to deserialize the linked list from a file (unsorted mode)
+struct Node* deserializeFromFileUnsorted(const char* filename) {
+    FILE* file = fopen(filename, "rb"); // Open the file in binary mode
+    if (file == NULL) {
+        printf("Error opening file for reading\n");
+        return NULL;
+    }
+
+    struct Node* head = NULL;
+    struct Node* tail = NULL;
+    int data;
+    while (fread(&data, sizeof(int), 1, file) == 1) { // Read each node's data from the file
+        struct Node* newNode = createNode(data);
+        if (head == NULL) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            tail = tail->next;
+        }
+    }
+
+    fclose(file);
+    return head;
+}
