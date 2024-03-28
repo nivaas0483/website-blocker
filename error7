@@ -1,0 +1,38 @@
+// Function to decrypt data
+void decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+             unsigned char *iv, unsigned char *plaintext) {
+    EVP_CIPHER_CTX *ctx;
+
+    int len;
+    int plaintext_len = 0; // Initialize plaintext length
+
+    /* Create and initialize the context */
+    if(!(ctx = EVP_CIPHER_CTX_new())) {
+        printf("Decryption context creation failed.\n");
+        return;
+    }
+
+    /* Initialize the decryption operation */
+    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv)) {
+        printf("Decryption initialization failed.\n");
+        return;
+    }
+
+    /* Provide the message to be decrypted, and obtain the decrypted output */
+    if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
+        printf("Decryption update failed.\n");
+        return;
+    }
+    plaintext_len = len;
+
+    /* Finalize the decryption */
+    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) {
+        printf("Decryption finalization failed.\n");
+        return;
+    }
+    plaintext_len += len;
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+    plaintext[plaintext_len] = '\0'; // Add null terminator to indicate end of string
+}
