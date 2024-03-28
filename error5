@@ -180,9 +180,49 @@ struct Node* deserializeFromFileSorted(const char* filename, unsigned char* key,
     fclose(file);
     return head;
 }
+// Function to serialize the linked list and save it to a file (unsorted mode)
+void serializeAndSaveUnsorted(struct Node* head, const char* filename, unsigned char* key, unsigned char* iv) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        printf("Error opening file for writing\n");
+        return;
+    }
 
-// Main function
-int main() {
-    // Your main function code here
-    return 0;
+    struct Node* current = head;
+    while (current != NULL) {
+        unsigned char ciphertext[256];
+        encrypt((const unsigned char *)&current->data, sizeof(int), key, iv, ciphertext);
+        fwrite(ciphertext, sizeof(unsigned char), sizeof(int), file);
+        current = current->next;
+    }
+
+    fclose(file);
+}
+
+// Function to deserialize the linked list from a file (unsorted mode)
+struct Node* deserializeFromFileUnsorted(const char* filename, unsigned char* key, unsigned char* iv) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Error opening file for reading\n");
+        return NULL;
+    }
+
+    struct Node* head = NULL;
+    struct Node* tail = NULL;
+    unsigned char ciphertext[256];
+    while (fread(ciphertext, sizeof(unsigned char), sizeof(int), file) != 0) {
+        int plaintext;
+        decrypt(ciphertext, sizeof(int), key, iv, (unsigned char *)&plaintext);
+        struct Node* newNode = createNode(plaintext);
+        if (head == NULL) {
+            head = newNode;
+            tail = newNode;
+        } else {
+            tail->next = newNode;
+            tail = tail->next;
+        }
+    }
+
+    fclose(file);
+    return head;
 }
