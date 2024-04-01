@@ -1,0 +1,329 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node structure
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function to create a new node
+struct Node* createNode(int data) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Function to print the linked list
+void printList(struct Node* head) {
+    struct Node* temp = head;
+    while (temp != NULL) {
+        printf("%d ", temp->data);
+        temp = temp->next;
+    }
+    printf("\n");
+}
+
+// Function to add a node in sorted order
+void insertSorted(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL && current->data < data) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (prev == NULL) {
+        newNode->next = *head;
+        *head = newNode;
+    } else {
+        prev->next = newNode;
+        newNode->next = current;
+    }
+}
+
+// Function to delete all occurrences of a node with a given value
+void deleteOccurrences(struct Node** head, int key) {
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            if (prev == NULL) {
+                *head = current->next;
+                free(current);
+                current = *head;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+// Function to delete a node at a particular position
+void deleteAtPosition(struct Node** head, int position) {
+    if (*head == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    struct Node* temp = *head;
+    if (position == 0) {
+        *head = temp->next;
+        free(temp);
+        return;
+    }
+    for (int i = 0; temp != NULL && i < position - 1; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL || temp->next == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* nextNode = temp->next->next;
+    free(temp->next);
+    temp->next = nextNode;
+}
+
+// Function to add a node at the beginning of the list
+void insertAtBeginning(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    newNode->next = *head;
+    *head = newNode;
+}
+
+// Function to add a node at a particular position
+void insertAtPosition(struct Node** head, int position, int data) {
+    if (position == 0) {
+        insertAtBeginning(head, data);
+        return;
+    }
+    struct Node* temp = *head;
+    for (int i = 0; i < position - 1 && temp != NULL; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* newNode = createNode(data);
+    newNode->next = temp->next;
+    temp->next = newNode;
+}
+
+// Function to add a node at the end of the list
+void insertAtEnd(struct Node** head, int data) {
+    struct Node* newNode = createNode(data);
+    if (*head == NULL) {
+        *head = newNode;
+    } else {
+        struct Node* temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newNode;
+    }
+}
+
+// Function to delete all occurrences of a node with a given value
+void deleteOccurrencesUnsorted(struct Node** head, int key) {
+    struct Node* current = *head;
+    struct Node* prev = NULL;
+
+    while (current != NULL) {
+        if (current->data == key) {
+            if (prev == NULL) {
+                *head = current->next;
+                free(current);
+                current = *head;
+            } else {
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        } else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+// Function to delete a node at a particular position
+void deleteAtPositionUnsorted(struct Node** head, int position) {
+    if (*head == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    struct Node* temp = *head;
+    if (position == 0) {
+        *head = temp->next;
+        free(temp);
+        return;
+    }
+    for (int i = 0; temp != NULL && i < position - 1; i++) {
+        temp = temp->next;
+    }
+    if (temp == NULL || temp->next == NULL) {
+        printf("Invalid position\n");
+        return;
+    }
+    struct Node* nextNode = temp->next->next;
+    free(temp->next);
+    temp->next = nextNode;
+}
+
+// Main function
+int main() {
+    struct Node* head = NULL;
+    int mode_choice, operation_choice;
+
+    do {
+        printf("Select the mode\n");
+        printf("1. Sorted Data Mode\n");
+        printf("2. Unsorted Data Mode\n");
+        printf("Enter your choice: ");
+        scanf("%d", &mode_choice);
+
+        switch (mode_choice) {
+            case 1:
+                do {
+                    printf("\nSorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Delete all occurrences of a node with a given value\n");
+                    printf("3. Delete a node at a particular position\n");
+                    printf("4. Print the linked list\n");
+                    printf("5. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1:
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertSorted(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        case 2:
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrences(&head, key);
+                            printList(head);
+                            break;
+                        case 3:
+                            printf("Enter position of node to delete: ");
+                            int position;
+                            scanf("%d", &position);
+                            deleteAtPosition(&head, position);
+                            printList(head);
+                            break;
+                        case 4:
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        case 5:
+                            printf("Exiting Sorted Data Mode...\n");
+                            break;
+                        default:
+                            printf("Invalid choice!\n");
+                    }
+                } while (operation_choice != 5);
+                break;
+
+            case 2:
+                do {
+                    printf("\nUnsorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Insert node at beginning\n");
+                    printf("3. Insert node at particular position\n");
+                    printf("4. Insert node at end\n");
+                    printf("5. Delete all occurrences of a node with a given value\n");
+                    printf("6. Delete a node at a particular position\n");
+                    printf("7. Print the linked list\n");
+                    printf("8. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1:
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertAtEnd(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        case 2:
+                            printf("Enter data to insert at beginning: ");
+                            int dataBegin;
+                            scanf("%d", &dataBegin);
+                            insertAtBeginning(&head, dataBegin);
+                            printList(head);
+                            break;
+                        case 3:
+                            printf("Enter position to insert: ");
+                            int position, dataPos;
+                            scanf("%d", &position);
+                            printf("Enter data to insert: ");
+                            scanf("%d", &dataPos);
+                            insertAtPosition(&head, position, dataPos);
+                            printList(head);
+                            break;
+                        case 4:
+                            printf("Enter data to insert at end: ");
+                            int dataEnd;
+                            scanf("%d", &dataEnd);
+                            insertAtEnd(&head, dataEnd);
+                            printList(head);
+                            break;
+                        case 5:
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrencesUnsorted(&head, key);
+                            printList(head);
+                            break;
+                        case 6:
+                            printf("Enter position of node to delete: ");
+                            int positionDel;
+                            scanf("%d", &positionDel);
+                            deleteAtPositionUnsorted(&head, positionDel);
+                            printList(head);
+                            break;
+                        case 7:
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        case 8:
+                            printf("Exiting Unsorted Data Mode...\n");
+                            break;
+                        default:
+                            printf("Invalid choice!\n");
+                    }
+                } while (operation_choice != 8);
+                break;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (mode_choice != 1 && mode_choice != 2);
+
+    return 0;
+}
