@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define the structure for a Person
+struct Person {
+    char name[20];
+    int age;
+    float height;
+};
+
+int main() {
+    // Create a Person instance
+    struct Person person = {"John", 30, 6.1};
+
+    // Serialize the Person instance to a binary file
+    FILE *file_write = fopen("person.bin", "wb");
+    if (file_write == NULL) {
+        fprintf(stderr, "Error opening file for writing\n");
+        exit(1);
+    }
+
+    // Write the Person data to the file
+    fwrite(&person, sizeof(struct Person), 1, file_write);
+
+    // Close the file
+    fclose(file_write);
+
+    printf("Serialized data saved to 'person.bin'\n");
+
+    // Deserialize the data from the binary file
+    FILE *file_read = fopen("person.bin", "rb");
+    if (file_read == NULL) {
+        fprintf(stderr, "Error opening file for reading\n");
+        exit(1);
+    }
+
+    // Read the data into a new Person instance
+    struct Person deserialized_person;
+    fread(&deserialized_person, sizeof(struct Person), 1, file_read);
+
+    // Close the file
+    fclose(file_read);
+
+    // Print the deserialized data
+    printf("\nDeserialized data:\n");
+    printf("Name: %s\n", deserialized_person.name);
+    printf("Age: %d\n", deserialized_person.age);
+    printf("Height: %.1f\n", deserialized_person.height);
+
+    return 0;
+}
