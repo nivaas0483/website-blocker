@@ -1,0 +1,18 @@
+// Add the necessary header files and structure definition here
+
+int main() {
+    struct Person john_doe = {"John Doe", 30, 175.5};
+    char encoded_data[50]; // Allocate buffer for encoded data
+
+    // Encode person information
+    encode_person(&john_doe, encoded_data);
+
+    // Print the encoded data in hexadecimal format
+    printf("Encoded Data (Hex): ");
+    for (int i = 0; i < 2 + strlen(john_doe.name) + sizeof(john_doe.age) + sizeof(john_doe.height); i++) {
+        printf("%02X ", encoded_data[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
