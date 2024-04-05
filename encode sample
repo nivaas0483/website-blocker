@@ -1,42 +1,47 @@
 #include <stdio.h>
 #include <string.h>
 
-// Define the structure for person information
+// Structure to store person information
 struct Person {
     char name[20];
     int age;
-    float height;
 };
 
-// Function to encode person information using CDR
+// Function to encode person information
 void encode_person(const struct Person *person, char *encoded_data) {
-    // Encode name field (Type: 0x01)
+    // Encode name (Type: 0x01)
     encoded_data[0] = 0x01;
-    encoded_data[1] = strlen(person->name); // Length
-    memcpy(&encoded_data[2], person->name, encoded_data[1]); // Value
+    encoded_data[1] = strlen(person->name);
+    memcpy(&encoded_data[2], person->name, strlen(person->name));
 
-    // Encode age field (Type: 0x02)
-    encoded_data[2 + encoded_data[1]] = 0x02;
-    encoded_data[3 + encoded_data[1]] = sizeof(person->age); // Length
-    memcpy(&encoded_data[4 + encoded_data[1]], &person->age, sizeof(person->age)); // Value
-
-    // Encode height field (Type: 0x03)
-    encoded_data[4 + encoded_data[1] + sizeof(person->age)] = 0x03;
-    encoded_data[5 + encoded_data[1] + sizeof(person->age)] = sizeof(person->height); // Length
-    memcpy(&encoded_data[6 + encoded_data[1] + sizeof(person->age)], &person->height, sizeof(person->height)); // Value
+    // Encode age (Type: 0x02)
+    encoded_data[2 + strlen(person->name)] = 0x02;
+    encoded_data[3 + strlen(person->name)] = sizeof(int);
+    memcpy(&encoded_data[4 + strlen(person->name)], &person->age, sizeof(int));
 }
 
 int main() {
-    struct Person john_doe = {"John Doe", 30, 175.5};
-    char encoded_data[50]; // Allocate buffer for encoded data
+    struct Person person;
+
+    // Input name and age
+    printf("Enter name: ");
+    scanf("%s", person.name);
+    printf("Enter age: ");
+    scanf("%d", &person.age);
+
+    // Calculate encoded data length
+    int encoded_data_length = 2 + strlen(person.name) + 2 + sizeof(int);
+
+    // Create buffer for encoded data
+    char encoded_data[encoded_data_length];
 
     // Encode person information
-    encode_person(&john_doe, encoded_data);
+    encode_person(&person, encoded_data);
 
-    // Print the encoded data in hexadecimal format
-    printf("Encoded Data (Hex): ");
-    for (int i = 0; i < 2 + strlen(john_doe.name) + sizeof(john_doe.age) + sizeof(john_doe.height); i++) {
-        printf("%02X ", encoded_data[i]);
+    // Print encoded data in hexadecimal format
+    printf("Encoded data: ");
+    for (int i = 0; i < encoded_data_length; i++) {
+        printf("%02X ", (unsigned char)encoded_data[i]);
     }
     printf("\n");
 
