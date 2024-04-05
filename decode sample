@@ -1,48 +1,34 @@
-#include <stdio.h>
-#include <string.h>
-
-// Structure to store person information
-struct Person {
-    char name[20];
-    int age;
-};
-
-// Function to decode person information
 void decode_person(const char *encoded_data, struct Person *person) {
     int offset = 0;
 
     // Decode name (Type: 0x01)
     if (encoded_data[offset] == 0x01) {
         int name_length = encoded_data[offset + 1];
-        memcpy(person->name, &encoded_data[offset + 2], name_length);
-        person->name[name_length] = '\0';
-        offset += 2 + name_length;
+        if (offset + 2 + name_length <= strlen(encoded_data)) {
+            memcpy(person->name, &encoded_data[offset + 2], name_length);
+            person->name[name_length] = '\0'; // Ensure null-termination
+            offset += 2 + name_length;
+        } else {
+            printf("Error: Invalid name length\n");
+            return; // Handle error appropriately
+        }
+    } else {
+        printf("Error: Name field not found\n");
+        return; // Handle error appropriately
     }
 
     // Decode age (Type: 0x02)
     if (encoded_data[offset] == 0x02) {
         int age_length = encoded_data[offset + 1];
-        memcpy(&person->age, &encoded_data[offset + 2], age_length);
-        offset += 2 + age_length;
+        if (offset + 2 + age_length <= strlen(encoded_data)) {
+            memcpy(&person->age, &encoded_data[offset + 2], age_length);
+            offset += 2 + age_length;
+        } else {
+            printf("Error: Invalid age length\n");
+            return; // Handle error appropriately
+        }
+    } else {
+        printf("Error: Age field not found\n");
+        return; // Handle error appropriately
     }
-}
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <encoded_data>\n", argv[0]);
-        return 1;
-    }
-
-    const char *encoded_data = argv[1];
-    struct Person decoded_person;
-
-    // Decode the encoded data
-    decode_person(encoded_data, &decoded_person);
-
-    // Print the decoded person's information
-    printf("Decoded Person Information:\n");
-    printf("Name: %s\n", decoded_person.name);
-    printf("Age: %d\n", decoded_person.age);
-
-    return 0;
 }
