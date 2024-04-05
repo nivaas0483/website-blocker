@@ -1,18 +1,17 @@
 #include <stdio.h>
 #include <string.h>
 
-// Define the structure for person information
+// Structure to store person information
 struct Person {
     char name[20];
     int age;
-    float height;
 };
 
-// Function to decode person information using CDR
+// Function to decode person information
 void decode_person(const char *encoded_data, struct Person *person) {
     int offset = 0;
 
-    // Decode name field (Type: 0x01)
+    // Decode name (Type: 0x01)
     if (encoded_data[offset] == 0x01) {
         int name_length = encoded_data[offset + 1];
         memcpy(person->name, &encoded_data[offset + 2], name_length);
@@ -20,18 +19,11 @@ void decode_person(const char *encoded_data, struct Person *person) {
         offset += 2 + name_length;
     }
 
-    // Decode age field (Type: 0x02)
+    // Decode age (Type: 0x02)
     if (encoded_data[offset] == 0x02) {
         int age_length = encoded_data[offset + 1];
         memcpy(&person->age, &encoded_data[offset + 2], age_length);
         offset += 2 + age_length;
-    }
-
-    // Decode height field (Type: 0x03)
-    if (encoded_data[offset] == 0x03) {
-        int height_length = encoded_data[offset + 1];
-        memcpy(&person->height, &encoded_data[offset + 2], height_length);
-        offset += 2 + height_length;
     }
 }
 
@@ -51,7 +43,6 @@ int main(int argc, char *argv[]) {
     printf("Decoded Person Information:\n");
     printf("Name: %s\n", decoded_person.name);
     printf("Age: %d\n", decoded_person.age);
-    printf("Height: %.1f\n", decoded_person.height);
 
     return 0;
 }
