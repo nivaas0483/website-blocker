@@ -1,4 +1,30 @@
-// Add the necessary header files and structure definition here
+#include <stdio.h>
+#include <string.h>
+
+// Define the structure for person information
+struct Person {
+    char name[20];
+    int age;
+    float height;
+};
+
+// Function to encode person information using CDR
+void encode_person(const struct Person *person, char *encoded_data) {
+    // Encode name field (Type: 0x01)
+    encoded_data[0] = 0x01;
+    encoded_data[1] = strlen(person->name); // Length
+    memcpy(&encoded_data[2], person->name, encoded_data[1]); // Value
+
+    // Encode age field (Type: 0x02)
+    encoded_data[2 + encoded_data[1]] = 0x02;
+    encoded_data[3 + encoded_data[1]] = sizeof(person->age); // Length
+    memcpy(&encoded_data[4 + encoded_data[1]], &person->age, sizeof(person->age)); // Value
+
+    // Encode height field (Type: 0x03)
+    encoded_data[4 + encoded_data[1] + sizeof(person->age)] = 0x03;
+    encoded_data[5 + encoded_data[1] + sizeof(person->age)] = sizeof(person->height); // Length
+    memcpy(&encoded_data[6 + encoded_data[1] + sizeof(person->age)], &person->height, sizeof(person->height)); // Value
+}
 
 int main() {
     struct Person john_doe = {"John Doe", 30, 175.5};
