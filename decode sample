@@ -7,35 +7,32 @@ struct Person {
     int age;
 };
 
-// Function to decode person information
 void decode_person(const char *encoded_data, struct Person *person) {
+    // Ensure encoded data is not empty
+    if (strlen(encoded_data) < 1) {
+        printf("Error: Invalid encoded data\n");
+        return;
+    }
+
     // Decode name length
     int name_length = encoded_data[0];
+
+    // Ensure name length does not exceed encoded data length
+    if (name_length + 1 >= strlen(encoded_data)) {
+        printf("Error: Invalid name length\n");
+        return;
+    }
 
     // Decode name
     memcpy(person->name, &encoded_data[1], name_length);
     person->name[name_length] = '\0'; // Null-terminate the string
 
     // Decode age
-    memcpy(&person->age, &encoded_data[1 + name_length], sizeof(int));
-}
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <encoded_data>\n", argv[0]);
-        return 1;
+    int age_offset = name_length + 1;
+    if (age_offset + sizeof(int) <= strlen(encoded_data)) {
+        memcpy(&person->age, &encoded_data[age_offset], sizeof(int));
+    } else {
+        printf("Error: Invalid age length\n");
+        return;
     }
-
-    // Allocate memory for Person struct
-    struct Person decoded_person;
-
-    // Decode the encoded data
-    decode_person(argv[1], &decoded_person);
-
-    // Print decoded person's information
-    printf("Decoded Person Information:\n");
-    printf("Name: %s\n", decoded_person.name);
-    printf("Age: %d\n", decoded_person.age);
-
-    return 0;
 }
