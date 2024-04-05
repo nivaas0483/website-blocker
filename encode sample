@@ -9,15 +9,14 @@ struct Person {
 
 // Function to encode person information
 void encode_person(const struct Person *person, char *encoded_data) {
-    // Encode name (Type: 0x01)
-    encoded_data[0] = 0x01;
-    encoded_data[1] = strlen(person->name);
-    memcpy(&encoded_data[2], person->name, strlen(person->name));
+    // Encode name length
+    encoded_data[0] = strlen(person->name);
 
-    // Encode age (Type: 0x02)
-    encoded_data[2 + strlen(person->name)] = 0x02;
-    encoded_data[3 + strlen(person->name)] = sizeof(int);
-    memcpy(&encoded_data[4 + strlen(person->name)], &person->age, sizeof(int));
+    // Encode name
+    memcpy(&encoded_data[1], person->name, strlen(person->name));
+
+    // Encode age
+    memcpy(&encoded_data[1 + strlen(person->name)], &person->age, sizeof(int));
 }
 
 int main() {
@@ -30,7 +29,7 @@ int main() {
     scanf("%d", &person.age);
 
     // Calculate encoded data length
-    int encoded_data_length = 2 + strlen(person.name) + 2 + sizeof(int);
+    int encoded_data_length = 1 + strlen(person.name) + sizeof(int);
 
     // Create buffer for encoded data
     char encoded_data[encoded_data_length];
@@ -38,7 +37,7 @@ int main() {
     // Encode person information
     encode_person(&person, encoded_data);
 
-    // Print encoded data in hexadecimal format
+    // Print encoded data
     printf("Encoded data: ");
     for (int i = 0; i < encoded_data_length; i++) {
         printf("%02X ", (unsigned char)encoded_data[i]);
