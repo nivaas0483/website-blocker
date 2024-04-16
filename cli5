@@ -51,7 +51,38 @@ int main() {
         fgets(buffer, BUFFER_SIZE, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';  // Remove newline character
 
-        // Send the data to the server
-        send(sock, buffer, strlen(buffer), 0);
+        // Encrypt the data
+        unsigned char ciphertext[BUFFER_SIZE + crypto_secretbox_MACBYTES];
+        if (crypto_secretbox_easy(ciphertext, buffer, strlen(buffer), nonce, key) != 0) {
+            perror("encryption failed");
+            exit(EXIT_FAILURE);
+        }
 
-        //
+        // Send the encrypted data to the server
+        send(sock, ciphertext, sizeof(ciphertext), 0);
+
+        // Receive data from server
+        ssize_t bytes_received;
+        if ((bytes_received = recv(sock, buffer, BUFFER_SIZE, 0)) < 0) {
+            perror("recv failed");
+            exit(EXIT_FAILURE);
+        }
+
+        // Decrypt the received data
+        unsigned char decrypted[BUFFER_SIZE];
+        if (crypto_secretbox_open_easy(decrypted, buffer, bytes_received, nonce, key) != 0) {
+            perror("decryption failed");
+            exit(EXIT_FAILURE);
+        }
+
+        decrypted[bytes_received - crypto_secretbox_MACBYTES] = '\0';
+
+        // Display the received data
+        printf("Received data from server: %s\n", decrypted);
+    }
+
+    // Close the socket
+    close(sock);
+
+    return 0;
+}
