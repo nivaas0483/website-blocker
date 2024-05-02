@@ -1,0 +1,195 @@
+#include <stdio.h>
+#include <dlfcn.h>
+
+// Node structure
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+// Function prototypes
+typedef struct Node* (*CreateNodeFunc)(int);
+typedef void (*PrintListFunc)(struct Node*);
+typedef void (*InsertSortedFunc)(struct Node**, int);
+typedef void (*DeleteOccurrencesFunc)(struct Node**, int);
+typedef void (*DeleteAtPositionFunc)(struct Node**, int);
+typedef void (*InsertAtBeginningFunc)(struct Node**, int);
+typedef void (*InsertAtPositionFunc)(struct Node**, int, int);
+typedef void (*InsertAtEndFunc)(struct Node**, int);
+typedef void (*DeleteOccurrencesUnsortedFunc)(struct Node**, int);
+typedef void (*DeleteAtPositionUnsortedFunc)(struct Node**, int);
+
+int main() {
+    // Load the shared library
+    void* lib = dlopen("./shared_library/liblinkedlist_functions.so", RTLD_LAZY);
+    if (!lib) {
+        fprintf(stderr, "Error loading shared library: %s\n", dlerror());
+        return 1;
+    }
+
+    // Load function pointers
+    CreateNodeFunc createNode = (CreateNodeFunc)dlsym(lib, "createNode");
+    PrintListFunc printList = (PrintListFunc)dlsym(lib, "printList");
+    InsertSortedFunc insertSorted = (InsertSortedFunc)dlsym(lib, "insertSorted");
+    DeleteOccurrencesFunc deleteOccurrences = (DeleteOccurrencesFunc)dlsym(lib, "deleteOccurrences");
+    DeleteAtPositionFunc deleteAtPosition = (DeleteAtPositionFunc)dlsym(lib, "deleteAtPosition");
+    InsertAtBeginningFunc insertAtBeginning = (InsertAtBeginningFunc)dlsym(lib, "insertAtBeginning");
+    InsertAtPositionFunc insertAtPosition = (InsertAtPositionFunc)dlsym(lib, "insertAtPosition");
+    InsertAtEndFunc insertAtEnd = (InsertAtEndFunc)dlsym(lib, "insertAtEnd");
+    DeleteOccurrencesUnsortedFunc deleteOccurrencesUnsorted = (DeleteOccurrencesUnsortedFunc)dlsym(lib, "deleteOccurrencesUnsorted");
+    DeleteAtPositionUnsortedFunc deleteAtPositionUnsorted = (DeleteAtPositionUnsortedFunc)dlsym(lib, "deleteAtPositionUnsorted");
+
+    // Check if any function pointer is NULL
+    if (!createNode || !printList || !insertSorted || !deleteOccurrences || !deleteAtPosition ||
+        !insertAtBeginning || !insertAtPosition || !insertAtEnd || !deleteOccurrencesUnsorted ||
+        !deleteAtPositionUnsorted) {
+        fprintf(stderr, "Error loading function pointers: %s\n", dlerror());
+        dlclose(lib);
+        return 1;
+    }
+
+    // Main program logic
+    struct Node* head = NULL;
+    int mode_choice, operation_choice;
+
+    do {
+        printf("Select the mode\n");
+        printf("1. Sorted Data Mode\n");
+        printf("2. Unsorted Data Mode\n");
+        printf("Enter your choice: ");
+        scanf("%d", &mode_choice);
+
+        switch (mode_choice) {
+            case 1:
+                do {
+                    printf("\nSorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Delete all occurrences of a node with a given value\n");
+                    printf("3. Delete a node at a particular position\n");
+                    printf("4. Print the linked list\n");
+                    printf("5. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1:
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertSorted(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        case 2:
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrences(&head, key);
+                            printList(head);
+                            break;
+                        case 3:
+                            printf("Enter position of node to delete: ");
+                            int position;
+                            scanf("%d", &position);
+                            deleteAtPosition(&head, position);
+                            printList(head);
+                            break;
+                        case 4:
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        case 5:
+                            printf("Exiting Sorted Data Mode...\n");
+                            break;
+                        default:
+                            printf("Invalid choice!\n");
+                    }
+                } while (operation_choice != 5);
+                break;
+
+            case 2:
+                do {
+                    printf("\nUnsorted Data Mode Operations:\n");
+                    printf("1. Add a node\n");
+                    printf("2. Insert node at beginning\n");
+                    printf("3. Insert node at particular position\n");
+                    printf("4. Insert node at end\n");
+                    printf("5. Delete all occurrences of a node with a given value\n");
+                    printf("6. Delete a node at a particular position\n");
+                    printf("7. Print the linked list\n");
+                    printf("8. Exit\n");
+                    printf("Enter your choice: ");
+                    scanf("%d", &operation_choice);
+
+                    switch (operation_choice) {
+                        case 1:
+                            printf("Enter number of nodes to add: ");
+                            int numNodes;
+                            scanf("%d", &numNodes);
+                            printf("Enter data for each node:\n");
+                            for (int i = 0; i < numNodes; i++) {
+                                int data;
+                                scanf("%d", &data);
+                                insertAtEnd(&head, data);
+                            }
+                            printList(head);
+                            break;
+                        case 2:
+                            printf("Enter data to insert at beginning: ");
+                            int dataBegin;
+                            scanf("%d", &dataBegin);
+                            insertAtBeginning(&head, dataBegin);
+                            printList(head);
+                            break;
+                        case 3:
+                            printf("Enter position to insert: ");
+                            int position, dataPos;
+                            scanf("%d", &position);
+                            printf("Enter data to insert: ");
+                            scanf("%d", &dataPos);
+                            insertAtPosition(&head, position, dataPos);
+                            printList(head);
+                            break;
+                        case 4:
+                            printf("Enter data to insert at end: ");
+                            int dataEnd;
+                            scanf("%d", &dataEnd);
+                            insertAtEnd(&head, dataEnd);
+                            printList(head);
+                            break;
+                        case 5:
+                            printf("Enter value of node to delete: ");
+                            int key;
+                            scanf("%d", &key);
+                            deleteOccurrencesUnsorted(&head, key);
+                            printList(head);
+                            break;
+                        case 6:
+                            printf("Enter position of node to delete: ");
+                            int positionDel;
+                            scanf("%d", &positionDel);
+                            deleteAtPositionUnsorted(&head, positionDel);
+                            printList(head);
+                            break;
+                        case 7:
+                            printf("Linked List: ");
+                            printList(head);
+                            break;
+                        case 8:
+                            printf("Exiting Unsorted Data Mode...\n");
+                            break;
+                        default:
+                            printf("Invalid choice!\n"); } } while (operation_choice != 8); break;        default:
+            printf("Invalid choice!\n");
+    }
+} while (mode_choice != 1 && mode_choice != 2);
+
+// Unload the shared library
+dlclose(lib);
+
+return 0;
+}
